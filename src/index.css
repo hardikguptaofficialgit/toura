@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Cursor Styles */
+* {
+  cursor: url('./cursor.svg') 12 12, auto;
+}
+
+/* Different cursor states for interactive elements */
+a, button, [role="button"], input[type="submit"], input[type="button"] {
+  cursor: url('./cursor.svg') 12 12, pointer;
+}
+
+/* Text selection cursor for text elements */
+input[type="text"], input[type="email"], input[type="password"], textarea, [contenteditable] {
+  cursor: url('./cursor.svg') 12 12, text;
+}
+
+/* Resize cursor for resizable elements */
+.resize {
+  cursor: url('./cursor.svg') 12 12, nw-resize;
+}
+
+/* Wait cursor for loading states */
+.loading {
+  cursor: url('./cursor.svg') 12 12, wait;
+}
+
+/* Funnel Display Font Family */
+* {
+  font-family: "Funnel Display", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* Smooth animations for all elements */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced cursor effects */
+body {
+  cursor: url('./cursor.svg') 12 12, auto;
+}
+
+/* Hover effects for better cursor visibility */
+*:hover {
+  cursor: url('./cursor.svg') 12 12, auto;
+}
+
+/* Special cursor for navigation elements */
+nav a, nav button {
+  cursor: url('./cursor.svg') 12 12, pointer;
+  transition: transform 0.2s ease;
+}
+
+nav a:hover, nav button:hover {
+  transform: scale(1.02);
+}
