@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, Send, Bot, Rocket, Book, Sun, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Chatbot = () => {
+const App = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, text: "Namaste! I'm your monastery heritage assistant. How can I help you explore Sikkim's sacred monasteries today?", isBot: true }
   ]);
   const [inputText, setInputText] = useState('');
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
@@ -42,124 +51,182 @@ const Chatbot = () => {
     }, 1000);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
 
   const quickQuestions = [
-    "Tell me about Rumtek Monastery",
-    "Show me virtual tours",
-    "What spiritual experiences are available?",
-    "View sacred collections"
+    { text: "What is the oldest monastery in Sikkim?", icon: <Book className="h-4 w-4" /> },
+    { text: "Tell me about Rumtek Monastery", icon: <Rocket className="h-4 w-4" /> },
+    { text: "How can I plan a spiritual tour?", icon: <Sun className="h-4 w-4" /> },
+    { text: "What kind of ancient artifacts can I see?", icon: <Sparkles className="h-4 w-4" /> }
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-            className="mb-4 w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
-          >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <Bot className="h-5 w-5" />
+    <div className="flex items-center justify-center min-h-screen bg-gray-950 text-gray-100 p-4 font-sans">
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14 }}
+              className="w-full h-full max-w-4xl max-h-[80vh] mx-auto my-auto rounded-3xl backdrop-blur-md bg-gray-900/70 border border-orange-500/30 shadow-2xl shadow-orange-500/10 flex flex-col overflow-hidden"
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 border-b border-orange-500/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                      <Bot className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-orange-400 text-lg tracking-wide">Welcome to Monk AI</h3>
+                      <p className="text-xs text-gray-400 opacity-90">Your Sikkim travel guide</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">Heritage Assistant</h3>
-                    <p className="text-xs opacity-90">Monastery Guide</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-1 hover:bg-white/20 rounded-full transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-                >
-                  <div
-                    className={`max-w-xs p-3 rounded-2xl text-sm ${
-                      message.isBot
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                        : 'bg-gradient-to-r from-orange-500 to-red-600 text-white'
-                    }`}
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 text-gray-400 hover:text-orange-400 transition-colors duration-200"
                   >
-                    {message.text}
-                  </div>
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-              ))}
-              
-              {/* Quick Questions */}
-              {messages.length === 1 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">Quick questions:</p>
-                  {quickQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setInputText(question);
-                        handleSendMessage();
-                      }}
-                      className="w-full p-2 text-xs bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-left transition-colors"
-                    >
-                      {question}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask about monasteries..."
-                  className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="p-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:from-orange-600 hover:to-red-700 transition-colors"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.map((message) => (
+                  <motion.div
+                    key={message.id}
+                    className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                  >
+                    <div
+                      className={`max-w-[75%] p-3 text-sm relative break-words 
+                        ${message.isBot 
+                          ? 'bg-gray-800 text-gray-100 rounded-2xl rounded-bl-none border border-orange-500/30 shadow-md shadow-orange-500/20' 
+                          : 'bg-orange-600 text-white rounded-2xl rounded-br-none shadow-md shadow-orange-500/40'
+                        }`}
+                    >
+                      {message.text}
+                    </div>
+                  </motion.div>
+                ))}
+                
+                {/* Quick Questions */}
+                {messages.length === 1 && (
+                  <div className="space-y-3 mt-4">
+                    <p className="text-xs text-orange-400 text-center tracking-widest font-quicksand font-bold">QUICK ACTIONS</p>
+                    {quickQuestions.map((question, index) => (
+                      <motion.button
+                        key={index}
+                        onClick={() => {
+                          setInputText(question.text);
+                          handleSendMessage();
+                        }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.1 * index } }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full p-3 text-base bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-left transition-colors duration-200 border border-gray-700/50 hover:border-orange-500/40 focus:outline-none focus:ring-2 focus:ring-orange-500 font-quicksand flex items-center space-x-2"
+                        style={{
+                          transform: 'translateY(0)',
+                          animation: 'float 2s infinite ease-in-out'
+                        }}
+                      >
+                        {question.icon}
+                        <span>{question.text}</span>
+                      </motion.button>
+                    ))}
+                    <style>{`
+                      @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Quicksand:wght@300..700&display=swap');
+                      @keyframes float {
+                        0% {
+                          transform: translateY(0);
+                        }
+                        50% {
+                          transform: translateY(-4px);
+                        }
+                        100% {
+                          transform: translateY(0);
+                        }
+                      }
+                      .font-quicksand {
+                        font-family: 'Quicksand', sans-serif;
+                      }
 
-      {/* Chat Button */}
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </motion.button>
+                      /* Hide scrollbar for Chrome, Safari and Opera */
+                      .custom-scrollbar::-webkit-scrollbar {
+                          display: none;
+                      }
+
+                      /* Hide scrollbar for IE, Edge and Firefox */
+                      .custom-scrollbar {
+                          -ms-overflow-style: none; /* IE and Edge */
+                          scrollbar-width: none; /* Firefox */
+                      }
+                    `}</style>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+  
+              {/* Input */}
+              <div className="flex-none p-4 border-t border-orange-500/20 bg-gray-900/70">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask a question..."
+                    className="flex-1 p-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+                  />
+                  <motion.button
+                    onClick={handleSendMessage}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition-colors shadow-lg shadow-orange-500/30"
+                  >
+                    <Send className="h-5 w-5" />
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+  
+        {/* Chat Button */}
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`
+            w-16 h-16 bg-gradient-to-br from-orange-600 to-orange-500 text-white rounded-full shadow-2xl shadow-orange-500/40 
+            flex items-center justify-center border-2 border-orange-400
+            fixed bottom-4 right-6
+          `}
+          animate={{ scale: isOpen ? 1.1 : 1, rotate: isOpen ? 90 : 0 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 150, damping: 25 }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={isOpen ? "x" : "chat"}
+              initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
+            >
+              {isOpen ? <X className="h-8 w-8" /> : <MessageCircle className="h-8 w-8" />}
+            </motion.div>
+          </AnimatePresence>
+        </motion.button>
+      </div>
     </div>
   );
 };
 
-export default Chatbot;
+export default App;
