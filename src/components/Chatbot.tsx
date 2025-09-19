@@ -8,7 +8,7 @@ const App = () => {
     { id: 1, text: "Namaste! I'm your monastery heritage assistant. How can I help you explore Sikkim's sacred monasteries today?", isBot: true }
   ]);
   const [inputText, setInputText] = useState('');
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -18,40 +18,41 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
     const newMessage = { id: Date.now(), text: inputText, isBot: false };
     setMessages(prev => [...prev, newMessage]);
-    const userMessage = inputText.toLowerCase();
+    const userMessage = inputText;
     setInputText('');
 
-    // Simulate bot response based on monastery-related keywords
-    setTimeout(() => {
-      let botResponse = '';
-      
-      if (userMessage.includes('rumtek') || userMessage.includes('largest')) {
-        botResponse = "Rumtek Monastery is the largest monastery in Sikkim, built in 1966. It's known for its golden stupa and houses the seat of the 16th Karmapa. Would you like to take a virtual tour?";
-      } else if (userMessage.includes('pemayangtse') || userMessage.includes('oldest')) {
-        botResponse = "Pemayangtse Monastery, built in 1705, is one of the oldest monasteries in Sikkim. It offers stunning mountain views and features intricate wood carvings. Shall I show you the digital collection?";
-      } else if (userMessage.includes('meditation') || userMessage.includes('spiritual')) {
-        botResponse = "We offer various spiritual experiences including morning meditation sessions, prayer wheel ceremonies, and monastic chanting. Which spiritual practice interests you most?";
-      } else if (userMessage.includes('virtual tour') || userMessage.includes('360')) {
-        botResponse = "Our 360° virtual tours let you explore monastery halls, prayer rooms, and sacred artifacts in immersive detail. Which monastery would you like to visit virtually?";
-      } else if (userMessage.includes('collection') || userMessage.includes('artifacts')) {
-        botResponse = "Our digital collections include ancient thangkas, ritual artifacts, manuscripts, and golden stupas. Each collection has detailed historical information. What type of artifacts interest you?";
-      } else if (userMessage.includes('help') || userMessage.includes('guide')) {
-        botResponse = "I can help you with:\n• Virtual monastery tours\n• Sacred collections\n• Spiritual experiences\n• Historical information\n• Meditation practices\n\nWhat would you like to explore?";
-      } else {
-        botResponse = "That's a great question about our monastery heritage! I can help you explore virtual tours, sacred collections, spiritual experiences, or provide historical information about Sikkim's monasteries. What interests you most?";
-      }
+    try {
+      const response = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: userMessage }),
+      });
 
-      const botMessage = { id: Date.now() + 1, text: botResponse, isBot: true };
+      const data = await response.json();
+
+      const botMessage = {
+        id: Date.now() + 1,
+        text: data.reply || "Sorry, I couldn't process that.",
+        isBot: true,
+      };
+
       setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+    } catch (error) {
+      const botMessage = {
+        id: Date.now() + 1,
+        text: "⚠️ Unable to reach Monk AI server. Is the backend running?",
+        isBot: true,
+      };
+      setMessages(prev => [...prev, botMessage]);
+    }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
@@ -132,43 +133,11 @@ const App = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="w-full p-3 text-base bg-gray-800/50 hover:bg-gray-700/50 rounded-lg text-left transition-colors duration-200 border border-gray-700/50 hover:border-orange-500/40 focus:outline-none focus:ring-2 focus:ring-orange-500 font-quicksand flex items-center space-x-2"
-                        style={{
-                          transform: 'translateY(0)',
-                          animation: 'float 2s infinite ease-in-out'
-                        }}
                       >
                         {question.icon}
                         <span>{question.text}</span>
                       </motion.button>
                     ))}
-                    <style>{`
-                      @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Quicksand:wght@300..700&display=swap');
-                      @keyframes float {
-                        0% {
-                          transform: translateY(0);
-                        }
-                        50% {
-                          transform: translateY(-4px);
-                        }
-                        100% {
-                          transform: translateY(0);
-                        }
-                      }
-                      .font-quicksand {
-                        font-family: 'Quicksand', sans-serif;
-                      }
-
-                      /* Hide scrollbar for Chrome, Safari and Opera */
-                      .custom-scrollbar::-webkit-scrollbar {
-                          display: none;
-                      }
-
-                      /* Hide scrollbar for IE, Edge and Firefox */
-                      .custom-scrollbar {
-                          -ms-overflow-style: none; /* IE and Edge */
-                          scrollbar-width: none; /* Firefox */
-                      }
-                    `}</style>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
