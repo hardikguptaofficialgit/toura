@@ -84,7 +84,7 @@ const Navigation: React.FC = () => {
           {/* Centered Logo */}
           <a href="/" className="flex items-center space-x-3">
           <motion.img
-  src="../public/images/logo.svg"
+  src="/images/logo.svg"
   alt="Toura Logo"
   className="h-8 w-8 lg:h-8 lg:w-8"
   animate={{ rotate: 360 }}
