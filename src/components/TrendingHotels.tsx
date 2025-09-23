@@ -57,7 +57,7 @@ const TrendingCollections = () => {
   };
 
   return (
-    <section id="collections" className="py-24 bg-white dark:bg-black">
+    <section id="collections" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div 
           className="text-center mb-16"
@@ -66,10 +66,10 @@ const TrendingCollections = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Sacred Collections
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Explore precious artifacts and treasures preserved through digital heritage
           </p>
         </motion.div>
@@ -78,7 +78,7 @@ const TrendingCollections = () => {
           {collections.map((collection, index) => (
             <motion.div
               key={collection.id}
-              className="group bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800 overflow-hidden"
+              className="group bg-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden"
               style={{
                 clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)'
               }}
@@ -101,27 +101,27 @@ const TrendingCollections = () => {
               </div>
 
               <div className="p-6">
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{collection.name}</h3>
+                <h3 className="font-bold text-lg text-gray-900 mb-2">{collection.name}</h3>
                 
-                <div className="flex items-center text-gray-500 dark:text-gray-400 mb-3">
+                <div className="flex items-center text-gray-500 mb-3">
                   <Calendar className="h-4 w-4 mr-2" />
                   <span className="text-sm">{collection.period}</span>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed">
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                   {collection.description}
                 </p>
 
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold text-gray-900 dark:text-white">{collection.items}</span> items
+                  <div className="text-sm text-gray-500">
+                    <span className="font-semibold text-gray-900">{collection.items}</span> items
                   </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">
+                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
                     {collection.monastery}
                   </div>
                 </div>
 
-                <button className="w-full inline-flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors group">
+                <button className="w-full inline-flex items-center justify-center text-blue-600 font-semibold hover:text-blue-700 transition-colors group">
                   <Eye className="h-4 w-4 mr-2" />
                   <span>View Collection</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -132,7 +132,7 @@ const TrendingCollections = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="inline-flex items-center px-8 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300">
+          <button className="inline-flex items-center px-8 py-3 bg-gray-50 border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all duration-300">
             <span>View All Collections</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </button>

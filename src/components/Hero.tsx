@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Hotel, Utensils, Plane, Mountain, Camera, Compass, Backpack, TreePine } from 'lucide-react';
+import { Search, Mountain, Camera, Compass, Backpack, TreePine } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../contexts/ThemeContext';
 import Silk from './Silk';
 import Navigation from './Navigation';
+import MonasteryModal, { MonasteryInfo } from './MonasteryModal';
+import MonasteryResultsModal from './MonasteryResultsModal';
 
 const Hero: React.FC = () => {
-  const { isDarkMode } = useTheme();
   const floatingControls = useAnimation();
   const sikkimRef = useRef<HTMLSpanElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,40 +38,208 @@ const Hero: React.FC = () => {
   
   
   const animatedPrefixes = [
-   "Explore Monasteries in" ,
-    "Where to in",
-    "Great Stays in",
-    "Do Something Fun in", 
-    "Find Places to Eat in",
-    "Find the Best Flight to",
-    "Explore Rental Places in"
+    "Explore monasteries in",
+    "Where to go in",
+    "Great stays in",
+    "Things to do in",
+    "Places to eat in",
+    "Find flights to",
+    "Find stays in"
   ];
 
-  // Search suggestions data
+  // Monastery suggestions only
   const searchSuggestions = [
-    { icon: Hotel, text: "Book luxury hotels in Gangtok", category: "Hotels" },
-    { icon: Mountain, text: "Visit Rumtek Monastery today", category: "Attractions" },
-    { icon: Utensils, text: "Find best momos in Sikkim", category: "Food" },
-    { icon: MapPin, text: "Explore Pelling's mountain views", category: "Destinations" },
-    { icon: Hotel, text: "Reserve spa resorts in Sikkim", category: "Hotels" },
-    { icon: Mountain, text: "Book Tsomgo Lake tour", category: "Tours" },
-    { icon: Plane, text: "Get flights to Pakyong Airport", category: "Travel" },
-    { icon: Utensils, text: "Try authentic Sikkimese thali", category: "Food" },
-    { icon: MapPin, text: "Plan Yuksom trekking adventure", category: "Adventure" },
-    { icon: Hotel, text: "Book homestays in North Sikkim", category: "Stays" },
-    { icon: Mountain, text: "Visit Pemayangtse Monastery", category: "Spiritual" },
-    { icon: Utensils, text: "Order Gundruk and Sinki", category: "Local Food" },
+    { icon: Mountain, text: 'Rumtek Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Pemayangtse Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Enchey Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Tashiding Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Dubdi Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Phensang Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Ralang Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Lingdum (Ranka) Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Phodong Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Sanga Choeling Monastery', category: 'Monasteries' },
+    { icon: Mountain, text: 'Khecheopalri (Wishing Lake) Monastery', category: 'Monasteries' },
   ];
+
+  // Monastery data (placeholder content)
+  const monasteryData: Record<string, MonasteryInfo> = {
+    'Rumtek Monastery': {
+      id: 'rumtek',
+      name: 'Rumtek Monastery',
+      location: 'East Sikkim',
+      history: 'Rumtek Monastery is one of the largest and most significant monasteries in Sikkim, known for its vibrant architecture and spiritual importance within the Karma Kagyu lineage.',
+      timings: '8:00 AM - 5:00 PM',
+      entryFee: '₹50 (adults), ₹20 (children) - subject to change',
+      contact: { phone: '+91-3592-xxxxx', email: 'info@rumtek.org', website: 'https://example.com/rumtek' },
+      photos: [
+        'https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=1200',
+        'https://images.pexels.com/photos/3571551/pexels-photo-3571551.jpeg?auto=compress&cs=tinysrgb&w=1200'
+      ],
+      virtualTourUrl: 'https://example.com/rumtek-virtual',
+      reviews: [
+        { user: 'Aarav', rating: 5, comment: 'Peaceful and beautiful monastery with rich heritage.', date: 'Aug 2024' },
+        { user: 'Meera', rating: 4, comment: 'Great experience, serene surroundings.', date: 'Jul 2024' }
+      ],
+      amenities: ['Guided Tours', 'Parking', 'Restrooms', 'Photography Allowed'],
+      events: [{ title: 'Annual Prayer Ceremony', date: 'Nov 10, 2025', description: 'A special prayer ceremony open to visitors.' }],
+      nearby: {
+        hotels: [
+          { id: 'h1', name: 'Himalayan View Resort', rating: 4.4, pricePerNight: '₹4,200', distance: '2.1 km', amenities: ['WiFi', 'Breakfast', 'Mountain View'] },
+          { id: 'h2', name: 'Rumtek Residency', rating: 4.0, pricePerNight: '₹3,100', distance: '1.4 km', amenities: ['WiFi', 'Parking', 'Restaurant'] }
+        ],
+        restaurants: [
+          { id: 'r1', name: 'Monk Kitchen', cuisine: 'Tibetan', priceRange: '₹₹', rating: 4.5, distance: '900 m' },
+          { id: 'r2', name: 'Gangtok Bites', cuisine: 'Indian', priceRange: '₹₹', rating: 4.1, distance: '1.1 km' }
+        ],
+        attractions: [
+          { id: 'a1', name: 'Rumtek View Point', distance: '1.8 km', lat: 27.3226, lng: 88.6244 } as any,
+          { id: 'a2', name: 'Botanical Garden', distance: '3.2 km', lat: 27.3252, lng: 88.6169 } as any
+        ]
+      },
+      mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28472.608...'
+    },
+    'Pemayangtse Monastery': {
+      id: 'pemayangtse',
+      name: 'Pemayangtse Monastery',
+      location: 'West Sikkim',
+      history: 'One of the oldest monasteries in Sikkim, famed for its exquisite woodwork and spiritual significance.',
+      timings: '9:00 AM - 5:00 PM',
+      entryFee: '₹50',
+      photos: [
+        'https://images.unsplash.com/photo-1524499982521-1ffd58dd89ea?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1505968409348-bd000797c92e?q=80&w=1600&auto=format&fit=crop'
+      ],
+      virtualTourUrl: 'https://example.com/pemayangtse-virtual',
+      reviews: [
+        { user: 'Rohit', rating: 5, comment: 'Stunning views and architecture.', date: 'Jun 2024' },
+        { user: 'Priya', rating: 4, comment: 'Peaceful ambience, well maintained museum.', date: 'May 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Enchey Monastery': {
+      id: 'enchey', name: 'Enchey Monastery', location: 'Gangtok, East Sikkim',
+      history: 'A 200-year-old monastery believed to be blessed by Lama Drupthob Karpo. Offers dramatic views of Kanchendzonga.',
+      timings: '9:00 AM - 5:00 PM', entryFee: 'Free',
+      photos: [
+        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Kiran', rating: 4, comment: 'Quiet, serene, and close to town.', date: 'Mar 2024' },
+        { user: 'Sonia', rating: 5, comment: 'Beautiful murals and a calm courtyard.', date: 'Jan 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Tashiding Monastery': {
+      id: 'tashiding', name: 'Tashiding Monastery', location: 'West Sikkim',
+      history: 'One of the holiest monasteries of Nyingma sect, perched on a hill between Rangeet and Rathong rivers.',
+      timings: '7:00 AM - 6:00 PM', entryFee: '₹30',
+      photos: [
+        'https://images.unsplash.com/photo-1470094003057-96f6f03fa2c1?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1494475673543-6a6a27143b22?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Dev', rating: 5, comment: 'Sacred place with powerful spiritual vibe.', date: 'Apr 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Dubdi Monastery': {
+      id: 'dubdi', name: 'Dubdi Monastery', location: 'Yuksom, West Sikkim',
+      history: 'Founded in 1701, the oldest monastery in Sikkim; also called Yuksom Monastery.',
+      timings: '9:00 AM - 5:00 PM', entryFee: '₹20',
+      photos: [
+        'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Arun', rating: 4, comment: 'Short hike rewards with solitude and heritage.', date: 'Oct 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Phensang Monastery': {
+      id: 'phensang', name: 'Phensang Monastery', location: 'North Sikkim',
+      history: 'Established in 1721, known for its annual festival before Losoong.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
+      photos: [
+        'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Nima', rating: 5, comment: 'Less-crowded and authentic experience.', date: 'Dec 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Ralang Monastery': {
+      id: 'ralang', name: 'Ralang Monastery', location: 'South Sikkim',
+      history: 'Important Kagyu monastery famous for its sprawling complex and sacred relics.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹30',
+      photos: [
+        'https://images.unsplash.com/photo-1606425270219-4c06c574ea39?q=80&w=1600&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Tashi', rating: 5, comment: 'Colorful architecture and scenic surroundings.', date: 'Sep 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Lingdum (Ranka) Monastery': {
+      id: 'lingdum', name: 'Lingdum (Ranka) Monastery', location: 'Near Gangtok, East Sikkim',
+      history: 'Modern monastery renowned for its expansive courtyard and training of young monks.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹30',
+      photos: [
+        'https://images.unsplash.com/photo-1522780550169-0b9f1f0a0f9b?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Alicia', rating: 4, comment: 'Great for photography; peaceful.', date: 'Aug 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Phodong Monastery': {
+      id: 'phodong', name: 'Phodong Monastery', location: 'North Sikkim',
+      history: 'Built in early 18th century; known for murals and masked dances during festivals.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
+      photos: [
+        'https://images.unsplash.com/photo-1517777596322-5a1b2f3c0f2e?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Rahul', rating: 4, comment: 'Atmospheric and historic.', date: 'Feb 2025' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Sanga Choeling Monastery': {
+      id: 'sangachoeling', name: 'Sanga Choeling Monastery', location: 'Near Pelling, West Sikkim',
+      history: 'One of the oldest monasteries in Sikkim, reachable via a short forested trek.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
+      photos: [
+        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Ishita', rating: 5, comment: 'Sunset views are incredible!', date: 'Oct 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    },
+    'Khecheopalri (Wishing Lake) Monastery': {
+      id: 'khecheopalri', name: 'Khecheopalri (Wishing Lake) Monastery', location: 'West Sikkim',
+      history: 'Sacred lake complex with monastery; believed that not a leaf is allowed to float on the water by birds.',
+      timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
+      photos: [
+        'https://images.unsplash.com/photo-1521207418485-99c705420785?q=80&w=1600&auto=format&fit=crop'
+      ],
+      reviews: [
+        { user: 'Kabir', rating: 4, comment: 'Mystical experience by the lake.', date: 'Nov 2024' }
+      ],
+      nearby: { hotels: [], restaurants: [], attractions: [] }
+    }
+  };
 
   // Dynamic placeholders based on current prefix
   const placeholderTexts: Record<string, string[]> = {
-    "Explore Monasteries in": ["Visit Rumtek Monastery", "Book Pemayangtse tour", "Explore Enchey Monastery"],
-    "Where to in": ["Plan Gangtok trip", "Explore Pelling views", "Book Yuksom trek", "Visit Lachen valley"],
-    "Great Stays in": ["Book luxury hotel in Gangtok", "Reserve mountain resort", "Find cozy homestay"],
-    "Do Something Fun in": ["Book paragliding adventure", "Plan river rafting", "Ride Gangtok cable car"],
-    "Find Places to Eat in": ["Try authentic momos", "Order Sikkimese thali", "Find local dal-bhat"],
-    "Find the Best Flight to": ["Book flight to Pakyong", "Get Bagdogra tickets", "Find cheap flights"],
-    "Explore Rental Places in": ["Book mountain hotels", "Find eco-friendly stays", "Reserve luxury resorts"]
+    "Explore monasteries in": ["Rumtek Monastery", "Pemayangtse tour", "Enchey Monastery"],
+    "Where to go in": ["Plan Gangtok trip", "Pelling views", "Yuksom trek", "Lachen valley"],
+    "Great stays in": ["Luxury hotel in Gangtok", "Mountain resort", "Cozy homestay"],
+    "Things to do in": ["Paragliding adventure", "River rafting", "Gangtok cable car"],
+    "Places to eat in": ["Authentic momos", "Sikkimese thali", "Local dal-bhat"],
+    "Find flights to": ["Pakyong", "Bagdogra", "Cheap flights"],
+    "Find stays in": ["Mountain hotels", "Eco-friendly stays", "Luxury resorts"]
   };
 
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
@@ -176,8 +344,7 @@ const Hero: React.FC = () => {
 
   // Filter suggestions based on search query
   const filteredSuggestions = searchSuggestions.filter(suggestion =>
-    suggestion.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    suggestion.category.toLowerCase().includes(searchQuery.toLowerCase())
+    suggestion.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,9 +352,18 @@ const Hero: React.FC = () => {
     setShowSuggestions(e.target.value.length > 0);
   };
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedMonastery, setSelectedMonastery] = useState<MonasteryInfo | null>(null);
+  const [resultsOpen, setResultsOpen] = useState(false);
+
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
+    const data = monasteryData[suggestion];
+    if (data) {
+      setSelectedMonastery(data);
+      setModalOpen(true);
+    }
   };
 
   const handleSearch = () => {
@@ -204,7 +380,7 @@ const Hero: React.FC = () => {
   };
   
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-300">
+    <section className="relative min-h-screen flex items-center justify-center overflow-visible transition-colors duration-300">
       
       {/* Enhanced Loading Animation */}
       <AnimatePresence>
@@ -357,31 +533,13 @@ const Hero: React.FC = () => {
               <Silk
                 speed={5}
                 scale={1}
-                color={isDarkMode ? "#A855F7" : "#e35717"}
+                color={"#e35717"}
                 noiseIntensity={1.5}
                 rotation={0}
               />
             </div>
 
-            {/* Floating Travel Icons */}
-            <motion.div
-              className="absolute top-32 left-20 z-15 pointer-events-none"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1,
-                y: [0, -20, 0],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ 
-                delay: 0.5, 
-                duration: 0.8,
-                y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-                rotate: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-              }}
-            >
-              <Mountain className="w-8 h-8 text-white/70 drop-shadow-lg" />
-            </motion.div>
+         
 
             <motion.div
               className="absolute top-40 right-32 z-15 pointer-events-none"
@@ -535,17 +693,13 @@ const Hero: React.FC = () => {
 </motion.div>
    {/* Enhanced Search Box with Suggestions */}
                 <motion.div 
-                  className="mx-auto w-[600px] relative"
+                  className="mx-auto w-full max-w-xl md:max-w-2xl relative"
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 1, delay: 1 }}
                 >
-                  <div className={`flex items-center px-6 py-4 rounded-full shadow-2xl backdrop-blur-lg border transition-colors duration-300 h-16 w-full ${
-                      isDarkMode 
-                        ? 'bg-black/90 border-gray-700' 
-                        : 'bg-black/90 border-gray-700'
-                    }`}>
-                    <Search className={`h-6 w-6 mr-4 flex-shrink-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                  <div className={`flex items-center px-4 sm:px-5 py-3 sm:py-4 rounded-full shadow-lg border h-14 sm:h-16 w-full bg-black/90 border-gray-700`}>
+                    <Search className={`h-6 w-6 mr-4 flex-shrink-0 text-gray-400`} />
                     <input
                       type="text"
                       value={searchQuery}
@@ -554,133 +708,64 @@ const Hero: React.FC = () => {
                       onFocus={() => setShowSuggestions(searchQuery.length > 0)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       placeholder={currentPlaceholder}
-                      className={`flex-1 text-lg bg-transparent outline-none min-w-0 transition-all duration-500 ease-out placeholder:transition-all placeholder:duration-500 focus:scale-[1.02] ${
-                        isDarkMode ? 'text-white placeholder-gray-500 focus:placeholder-gray-400' : 'text-white placeholder-gray-500 focus:placeholder-gray-400'
-                      }`}
+                      className={`flex-1 text-base sm:text-lg bg-transparent outline-none min-w-0 text-white placeholder-gray-500`}
                     />
                     <button 
                       onClick={handleSearch}
-                      className="ml-4 px-6 py-2 bg-white text-black font-semibold rounded-full transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 hover:bg-gray-100 w-24 flex-shrink-0"
+                      className="ml-3 sm:ml-4 px-4 sm:px-6 py-2 bg-white text-black font-semibold rounded-full shadow"
                     >
                       Search
                     </button>
                   </div>
 
                   {/* Search Suggestions Dropdown */}
-                  <div className={`absolute top-full mt-2 w-full rounded-xl shadow-2xl backdrop-blur-lg border z-50 overflow-hidden transition-all duration-700 ease-out transform ${
-                    showSuggestions 
-                      ? 'opacity-100 translate-y-0 scale-100 max-h-80 animate-in slide-in-from-top-4 fade-in' 
-                      : 'opacity-0 -translate-y-6 scale-90 max-h-0 animate-out slide-out-to-top-4 fade-out'
-                  } ${
-                    isDarkMode 
-                      ? 'bg-black/95 border-gray-700 shadow-blue-500/10' 
-                      : 'bg-white/95 border-gray-200 shadow-blue-500/10'
-                  }`}
+                  <div className={`absolute top-full mt-2 w-full rounded-xl shadow-lg border z-[200] overflow-hidden ${
+                    showSuggestions ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  } bg-white`}
                   style={{
-                    animationDuration: '600ms',
-                    animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                    transition: 'opacity 200ms ease'
                   }}>
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-96 overflow-y-auto overscroll-contain">
                       {filteredSuggestions.length > 0 ? (
                         <div className="p-2">
-                          {filteredSuggestions.slice(0, 8).map((suggestion, index) => {
+                          {filteredSuggestions.slice(0, 3).map((suggestion, index) => {
                             const IconComponent = suggestion.icon;
                             return (
                               <div
                                 key={`${suggestion.text}-${index}`}
-                                onClick={() => handleSuggestionClick(suggestion.text)}
-                                className={`flex items-center px-4 py-3 rounded-lg cursor-pointer group relative overflow-hidden transition-all duration-500 ease-out transform hover:scale-[1.03] hover:shadow-xl hover:-translate-y-1 ${
-                                  isDarkMode 
-                                    ? 'hover:bg-gradient-to-r hover:from-gray-800/90 hover:via-gray-700/80 hover:to-gray-800/90 text-white border border-transparent hover:border-blue-500/30' 
-                                    : 'hover:bg-gradient-to-r hover:from-gray-50 hover:via-white hover:to-gray-50 text-gray-900 border border-transparent hover:border-blue-500/20 hover:shadow-blue-500/10'
-                                }`}
-                                style={{
-                                  animationDelay: `${index * 80}ms`,
-                                  animationDuration: '600ms',
-                                  animationFillMode: 'both',
-                                  transform: showSuggestions ? 'translateX(0)' : 'translateX(-100%)',
-                                  transition: `all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 80}ms`
-                                }}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-gray-900 hover:bg-gray-50`}
+                                onMouseDown={() => handleSuggestionClick(suggestion.text)}
                               >
-                                {/* Animated Background Glow */}
-                                <div className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-50 group-hover:scale-100 ${
-                                  isDarkMode ? 'bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10' : 'bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5'
-                                }`}></div>
-                                
-                                {/* Icon with Enhanced Animation */}
-                                <div className="relative z-10">
-                                  <div className="relative">
-                                    <IconComponent className={`h-5 w-5 mr-3 transition-all duration-500 ease-out group-hover:scale-125 group-hover:rotate-12 group-hover:-translate-y-1 ${
-                                      isDarkMode ? 'text-blue-400 group-hover:text-blue-300 group-hover:drop-shadow-lg' : 'text-blue-600 group-hover:text-blue-500 group-hover:drop-shadow-lg'
-                                    }`} 
-                                    style={{
-                                      filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))'
-                                    }} />
-                                    {/* Pulsing Ring Animation */}
-                                    <div className={`absolute inset-0 rounded-full transition-all duration-500 transform scale-0 group-hover:scale-[300%] opacity-0 group-hover:opacity-30 ${
-                                      isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
-                                    }`}></div>
-                                    <div className={`absolute inset-0 rounded-full transition-all duration-700 transform scale-0 group-hover:scale-[400%] opacity-0 group-hover:opacity-20 ${
-                                      isDarkMode ? 'bg-purple-400' : 'bg-purple-500'
-                                    }`} style={{ animationDelay: '100ms' }}></div>
-                                  </div>
+                                <IconComponent className={`h-5 w-5 text-blue-600`} />
+                                <div className="flex-1 overflow-hidden">
+                                  <div className={`font-medium text-gray-900`}>{suggestion.text}</div>
+                                  <div className={`text-sm text-orange-600`}>Monastery</div>
                                 </div>
-                                
-                                {/* Text Content with Slide Animation */}
-                                <div className="flex-1 overflow-hidden relative z-10">
-                                  <div className={`font-medium transition-all duration-500 ease-out group-hover:translate-x-2 group-hover:-translate-y-0.5 ${
-                                    isDarkMode ? 'text-white group-hover:text-blue-100' : 'text-gray-900 group-hover:text-blue-900'
-                                  }`}>
-                                    {suggestion.text.split(' ').map((word, wordIndex) => (
-                                      <span 
-                                        key={wordIndex}
-                                        className="inline-block transition-all duration-300 ease-out group-hover:animate-pulse"
-                                        style={{
-                                          animationDelay: `${wordIndex * 50}ms`,
-                                          transform: 'translateY(0)'
-                                        }}
-                                      >
-                                        {word}{' '}
-                                      </span>
-                                    ))}
-                                  </div>
-                                  <div className={`text-sm transition-all duration-500 ease-out group-hover:translate-x-2 group-hover:translate-y-0.5 ${
-                                    isDarkMode ? 'text-gray-400 group-hover:text-blue-300' : 'text-gray-500 group-hover:text-blue-600'
-                                  }`}>
-                                    {suggestion.category}
-                                  </div>
-                                </div>
-                                
-                                {/* Animated Arrow */}
-                                <div className={`relative z-10 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0 ${
-                                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
-                                }`}>
-                                  <div className="relative">
-                                    <span className="text-lg animate-bounce">→</span>
-                                    <div className={`absolute inset-0 animate-ping ${
-                                      isDarkMode ? 'text-blue-300' : 'text-blue-500'
-                                    }`}>→</div>
-                                  </div>
-                                </div>
-                                
-                                {/* Shimmer Effect */}
-                                <div className="absolute inset-0 -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                                <button
+                                  onMouseDown={(e) => { e.stopPropagation(); handleSuggestionClick(suggestion.text); }}
+                                  className="shrink-0 px-3 py-1.5 rounded-full bg-orange-600 text-white text-sm hover:bg-orange-500"
+                                  aria-label={`Open ${suggestion.text}`}
+                                >
+                                  Go for it
+                                </button>
                               </div>
                             );
                           })}
+                          {filteredSuggestions.length > 3 && (
+                            <button
+                              onMouseDown={() => { setResultsOpen(true); setShowSuggestions(false); }}
+                              className="w-full mt-1 px-4 py-2 text-center rounded-lg bg-white border border-orange-200 text-orange-600 hover:bg-orange-50"
+                            >
+                              See all ({filteredSuggestions.length})
+                            </button>
+                          )}
                         </div>
                       ) : (
-                        <div className={`px-4 py-8 text-center transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
+                        <div className={`px-4 py-6 text-center text-gray-500`}>
                           <div className="relative">
-                            <Search className="h-8 w-8 mx-auto mb-2 opacity-50 animate-spin" 
-                              style={{ animationDuration: '3s' }} />
-                            <div className="absolute inset-0 h-8 w-8 mx-auto mb-2 animate-ping opacity-25">
-                              <Search className="h-8 w-8" />
-                            </div>
+                            <Search className="h-7 w-7 mx-auto mb-2 opacity-50" />
                           </div>
-                          <p className="animate-pulse">No suggestions found</p>
+                          <p>No suggestions found</p>
                         </div>
                       )}
                     </div>
@@ -692,6 +777,13 @@ const Hero: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <MonasteryModal open={modalOpen} onClose={() => setModalOpen(false)} monastery={selectedMonastery} />
+      <MonasteryResultsModal
+        open={resultsOpen}
+        onClose={() => setResultsOpen(false)}
+        items={filteredSuggestions.map(s => ({ name: s.text }))}
+        onSelect={(name) => { handleSuggestionClick(name); setResultsOpen(false); }}
+      />
     </section>
   );
 };

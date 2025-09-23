@@ -23,7 +23,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     const initMap = async () => {
       const loader = new Loader({
-        apiKey: 'YOUR_GOOGLE_MAPS_API_KEY', // Replace with actual API key
+        apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
         version: 'weekly',
       });
 

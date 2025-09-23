@@ -61,7 +61,7 @@ const PopularDestinations = () => {
   ];
 
   return (
-    <section id="monasteries" className="py-24 bg-gray-50 dark:bg-gray-900">
+    <section id="monasteries" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div 
           className="text-center mb-16"
@@ -70,10 +70,10 @@ const PopularDestinations = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Sacred Monasteries
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Discover Sikkim's ancient spiritual centers through immersive digital experiences
           </p>
         </motion.div>
@@ -82,7 +82,7 @@ const PopularDestinations = () => {
           {monasteries.map((monastery, index) => (
             <motion.div
               key={monastery.id}
-              className="group bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="group bg-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden"
               style={{
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)'
               }}
@@ -114,16 +114,16 @@ const PopularDestinations = () => {
               </div>
               
               <div className="p-6">
-                <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-3">
+                <div className="flex items-center text-gray-500 text-sm mb-3">
                   <Calendar className="h-4 w-4 mr-1" />
                   <span>Established {monastery.established}</span>
                 </div>
                 
-                <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed">
                   {monastery.description}
                 </p>
                 
-                <button className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors group">
+                <button className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors group">
                   <span>Explore Virtual Tour</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -133,7 +133,7 @@ const PopularDestinations = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="inline-flex items-center px-8 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300">
+          <button className="inline-flex items-center px-8 py-3 bg-white border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all duration-300">
             <span>View All Monasteries</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </button>

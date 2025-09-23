@@ -49,17 +49,7 @@ body {
   cursor: url('./cursor.svg') 12 12, auto;
 }
 
-/* Hover effects for better cursor visibility */
-*:hover {
-  cursor: url('./cursor.svg') 12 12, auto;
-}
-
-/* Special cursor for navigation elements */
+/* Hover effects for navigation elements (no scale) */
 nav a, nav button {
   cursor: url('./cursor.svg') 12 12, pointer;
-  transition: transform 0.2s ease;
-}
-
-nav a:hover, nav button:hover {
-  transform: scale(1.02);
 }

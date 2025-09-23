@@ -85,7 +85,7 @@ const MonasteryActivities = () => {
   };
 
   return (
-    <section id="activities" className="py-24 bg-white dark:bg-black">
+    <section id="activities" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div 
           className="text-center mb-16"
@@ -94,10 +94,10 @@ const MonasteryActivities = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Exploration Activities
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Discover monasteries through various interactive and immersive experiences
           </p>
         </motion.div>
@@ -108,7 +108,7 @@ const MonasteryActivities = () => {
             return (
               <motion.div
                 key={activity.id}
-                className="group bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800 overflow-hidden"
+                className="group bg-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden"
                 style={{
                   clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%)'
                 }}
@@ -142,22 +142,22 @@ const MonasteryActivities = () => {
                 </div>
                 
                 <div className="p-6">
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                  <p className="text-gray-600 mb-6 leading-relaxed">
                     {activity.description}
                   </p>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-center text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center text-gray-500">
                       <Clock className="h-4 w-4 mr-2" />
                       <span className="text-sm">{activity.duration}</span>
                     </div>
-                    <div className="flex items-center text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center text-gray-500">
                       <Users className="h-4 w-4 mr-2" />
                       <span className="text-sm">{activity.participants}</span>
                     </div>
                   </div>
 
-                  <button className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors group w-full justify-center">
+                  <button className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors group w-full justify-center">
                     <span>Start Activity</span>
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -168,7 +168,7 @@ const MonasteryActivities = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="inline-flex items-center px-8 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300">
+          <button className="inline-flex items-center px-8 py-3 bg-gray-50 border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all duration-300">
             <span>View All Activities</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </button>
