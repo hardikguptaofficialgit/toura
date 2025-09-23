@@ -87,7 +87,6 @@ const Navigation: React.FC = () => {
   src="/images/logo.svg"
   alt="Toura Logo"
   className="h-8 w-8 lg:h-8 lg:w-8"
-  animate={{ rotate: 360 }}
   transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
 />
 
