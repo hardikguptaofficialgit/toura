@@ -1,0 +1,95 @@
+[
+  {
+    "id": 1,
+    "name": "Rumtek Monastery - Main Prayer Hall",
+    "image": "/images/pano1.avif",
+    "description": "Experience the grandeur of Rumtek Monastery's main prayer hall, one of the largest and most important monasteries in Sikkim.",
+    "location": "Rumtek, East Sikkim",
+    "coordinates": { "lat": 27.2855, "lng": 88.5804 },
+    "hotspots": [
+      {
+        "id": "1",
+        "position": { "x": 30, "y": 40 },
+        "title": "Golden Buddha Statue",
+        "description": "The magnificent golden Buddha statue, the centerpiece of the prayer hall.",
+        "type": "info"
+      },
+      {
+        "id": "2",
+        "position": { "x": 60, "y": 35 },
+        "title": "Prayer Wheels",
+        "description": "Traditional prayer wheels that monks spin during meditation.",
+        "type": "info"
+      },
+      {
+        "id": "3",
+        "position": { "x": 45, "y": 60 },
+        "title": "Monk's Seating Area",
+        "description": "Where the monks gather for daily prayers and ceremonies.",
+        "type": "info"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Pemayangtse Monastery - Courtyard View",
+    "image": "/images/pano2.avif",
+    "description": "Take in the peaceful courtyard of Pemayangtse Monastery with stunning views of the Kanchenjunga mountain range.",
+    "location": "Pemayangtse, West Sikkim",
+    "coordinates": { "lat": 27.2500, "lng": 88.2000 },
+    "hotspots": [
+      {
+        "id": "1",
+        "position": { "x": 25, "y": 30 },
+        "title": "Kanchenjunga View",
+        "description": "Breathtaking view of the third highest mountain in the world.",
+        "type": "info"
+      },
+      {
+        "id": "2",
+        "position": { "x": 70, "y": 45 },
+        "title": "Prayer Flags",
+        "description": "Colorful prayer flags fluttering in the mountain breeze.",
+        "type": "info"
+      },
+      {
+        "id": "3",
+        "position": { "x": 50, "y": 70 },
+        "title": "Monastery Architecture",
+        "description": "Traditional Sikkimese monastery architecture with intricate woodwork.",
+        "type": "info"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Gangtok Cityscape - MG Marg View",
+    "image": "/images/pano3.avif",
+    "description": "Experience the vibrant heart of Gangtok from MG Marg, the main shopping and cultural street of Sikkim's capital.",
+    "location": "Gangtok, East Sikkim",
+    "coordinates": { "lat": 27.3314, "lng": 88.6138 },
+    "hotspots": [
+      {
+        "id": "1",
+        "position": { "x": 40, "y": 25 },
+        "title": "MG Marg Street",
+        "description": "The pedestrian-only main street of Gangtok, bustling with shops and restaurants.",
+        "type": "info"
+      },
+      {
+        "id": "2",
+        "position": { "x": 60, "y": 50 },
+        "title": "Traditional Shops",
+        "description": "Local shops selling traditional Sikkimese handicrafts and souvenirs.",
+        "type": "info"
+      },
+      {
+        "id": "3",
+        "position": { "x": 20, "y": 60 },
+        "title": "Mountain Views",
+        "description": "Panoramic views of the surrounding Himalayan mountains.",
+        "type": "info"
+      }
+    ]
+  }
+]

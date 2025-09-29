@@ -3,6 +3,9 @@ import { X, MapPin, Clock, Ticket, Info, Star, Phone, Mail, Globe, Hotel, Utensi
 import { motion, AnimatePresence } from 'framer-motion';
 import GoogleMap from './GoogleMap';
 import OpenMap from './OpenMap';
+import VRViewer from './VRViewer';
+import { useAuth } from '../contexts/AuthContext';
+import { TripStorageService, type Trip, type TripStop } from '../services/tripStorage';
 
 export interface MonasteryInfo {
   id: string;
@@ -39,6 +42,85 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
   const [aiPrompt, setAiPrompt] = useState('2-day trip focused on culture and food');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiItinerary, setAiItinerary] = useState<string>('');
+  const [vrOpen, setVrOpen] = useState(false);
+  const { user } = useAuth();
+  const [bookingStatus, setBookingStatus] = useState<'idle'|'booking'|'booked'|'error'>('idle');
+  const [bookingMessage, setBookingMessage] = useState<string>('');
+  const [activeNearby, setActiveNearby] = useState<'hotels'|'restaurants'|'sights'>('hotels');
+  const [nearby, setNearby] = useState<any[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [center, setCenter] = useState<{ lat: number; lng: number }>({ lat: 27.3389, lng: 88.6065 });
+
+  const OPENTRIPMAP_API_KEY = (import.meta as any).env?.VITE_OPENTRIPMAP_API_KEY as string | undefined;
+
+  const kindsByCategory: Record<'hotels'|'restaurants'|'sights', string> = {
+    hotels: 'accomodations',
+    restaurants: 'restaurants',
+    sights: 'interesting_places'
+  };
+
+  // Resolve a reasonable center for the monastery
+  useEffect(() => {
+    if (!open || !monastery) return;
+
+    // Try to infer from any nearby attraction coordinates provided
+    const guessFromNearby = monastery.nearby?.attractions?.[0] as any;
+    if (guessFromNearby && typeof guessFromNearby.lat === 'number' && typeof guessFromNearby.lng === 'number') {
+      setCenter({ lat: guessFromNearby.lat, lng: guessFromNearby.lng });
+      return;
+    }
+
+    // Fallback to Nominatim geocoding by name + location
+    (async () => {
+      try {
+        const q = encodeURIComponent(`${monastery.name} ${monastery.location || ''} Sikkim`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+        const data = await res.json();
+        if (Array.isArray(data) && data[0]) {
+          setCenter({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        } else {
+          setCenter({ lat: 27.3389, lng: 88.6065 });
+        }
+      } catch {
+        setCenter({ lat: 27.3389, lng: 88.6065 });
+      }
+    })();
+  }, [open, monastery]);
+
+  // Fetch nearby places from OpenTripMap
+  const fetchNearby = async (category: 'hotels'|'restaurants'|'sights') => {
+    if (!OPENTRIPMAP_API_KEY) { setNearby([]); return; }
+    setNearbyLoading(true);
+    try {
+      const url = new URL('https://api.opentripmap.com/0.1/en/places/radius');
+      url.searchParams.set('radius', '4000');
+      url.searchParams.set('lon', String(center.lng));
+      url.searchParams.set('lat', String(center.lat));
+      url.searchParams.set('kinds', kindsByCategory[category]);
+      url.searchParams.set('format', 'json');
+      url.searchParams.set('limit', '50');
+      url.searchParams.set('apikey', OPENTRIPMAP_API_KEY);
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : [];
+      setNearby(items.map((p: any) => ({
+        id: p.xid || `${p.lon},${p.lat}`,
+        name: p.name || 'Unnamed',
+        dist: p.dist,
+        point: { lat: p.point?.lat, lng: p.point?.lon },
+      })).filter((i: any) => i.point?.lat && i.point?.lng));
+    } catch {
+      setNearby([]);
+    } finally {
+      setNearbyLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!open || !monastery) return;
+    fetchNearby(activeNearby);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center, activeNearby]);
 
   // Manual Itinerary (localStorage)
   type ItineraryStop = { id: string; type: 'monastery'|'hotel'|'restaurant'|'note'; name: string; time?: string; notes?: string };
@@ -171,12 +253,52 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
                 <button onClick={() => (onAddToPlan ? onAddToPlan('monastery', monastery.id) : addToPlan('monastery', monastery.id, monastery.name))} className="px-3 py-2 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors flex items-center text-sm">
                   <Plus className="h-4 w-4 mr-1" /> Add to Plan
                 </button>
-                {monastery.virtualTourUrl && (
-                  <a href={monastery.virtualTourUrl} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg bg-white text-orange-600 border border-orange-300 hover:bg-orange-50 transition-colors text-sm flex items-center">
+                <button onClick={() => setVrOpen(true)} className="px-3 py-2 rounded-lg bg-white text-orange-600 border border-orange-300 hover:bg-orange-50 transition-colors text-sm flex items-center">
                     Virtually Experience
-                  </a>
-                )}
-                <button onClick={() => onBook?.('ticket')} className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-500 transition-colors text-sm flex items-center">
+                </button>
+                <button disabled={bookingStatus==='booking' || bookingStatus==='booked'} onClick={async () => {
+                  setBookingStatus('booking');
+                  setBookingMessage('');
+                  try {
+                    const userId = user?.uid || 'guest';
+                    const trips = await TripStorageService.getUserTrips(userId);
+                    let bookingTrip = trips.find(t => t.name === 'My Bookings' && t.userId === userId);
+                    if (!bookingTrip) {
+                      const newTripId = await TripStorageService.createTrip({
+                        name: 'My Bookings',
+                        destination: monastery.location || 'Sikkim',
+                        description: 'Tickets and reservations booked via Toura',
+                        startDate: new Date().toISOString().slice(0,10),
+                        endDate: new Date().toISOString().slice(0,10),
+                        duration: 1,
+                        stops: [],
+                        isPublic: false,
+                        userId,
+                        tags: ['bookings'],
+                        status: 'planned'
+                      });
+                      bookingTrip = (await TripStorageService.getTrip(newTripId)) as Trip;
+                    }
+                    const stop: Omit<TripStop,'id'> = {
+                      name: `Entrance Ticket - ${monastery.name}`,
+                      type: 'activity',
+                      description: `Booked tickets for ${monastery.name}. Auto-confirmed.`,
+                      location: { name: monastery.location || monastery.name },
+                      estimatedDuration: '3 hours',
+                      category: 'Ticket',
+                      importance: 'high',
+                      price: '₹200',
+                      notes: 'Show this confirmation at entry.'
+                    };
+                    await TripStorageService.addStopToTrip(bookingTrip.id, stop);
+                    setBookingStatus('booked');
+                    setBookingMessage('Tickets booked! Added to My Bookings.');
+                  } catch (e:any) {
+                    setBookingStatus('error');
+                    setBookingMessage('Failed to save booking.');
+                  }
+                  onBook?.('ticket');
+                }} className={`px-3 py-2 rounded-lg transition-colors text-sm flex items-center ${bookingStatus==='booked' ? 'bg-green-600 text-white' : 'bg-orange-600 text-white hover:bg-orange-500'}`}>
                   <Ticket className="h-4 w-4 mr-1" /> Book Tickets
                 </button>
                 <button onClick={onClose} className="ml-2 p-2 rounded-full border border-gray-200 hover:bg-gray-100">
@@ -187,6 +309,13 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto">
+              {/* Booking confirmation */}
+              {bookingStatus!=='idle' && (
+                <div className={`mx-5 mt-4 rounded-lg border p-3 text-sm ${bookingStatus==='booked' ? 'border-green-200 bg-green-50 text-green-700' : bookingStatus==='error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-orange-200 bg-orange-50 text-orange-700'}`}>
+                  {bookingMessage || (bookingStatus==='booking' ? 'Booking tickets…' : '')}
+                </div>
+              )}
+
               {/* Hero Gallery */}
               <div className="relative h-64 md:h-80 bg-gray-100">
                 {photoCount > 0 && (
@@ -198,6 +327,13 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
                 </button>
                 <button onClick={nextPhoto} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-700 rounded-full p-2 shadow">
                   <ChevronRight className="h-5 w-5" />
+                </button>
+                {/* VR CTA over carousel */}
+                <button
+                  onClick={() => setVrOpen(true)}
+                  className="absolute right-4 bottom-4 px-4 py-2 rounded-full bg-orange-600 text-white shadow-lg hover:bg-orange-500 transition-colors"
+                >
+                  Virtually experience this
                 </button>
                 {/* Dots */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -401,20 +537,34 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
                   {(activeTab === 'Hotels') && (
                   <section className="p-5 rounded-2xl border border-gray-200 bg-white">
                     <h3 className="text-lg font-semibold mb-3 flex items-center"><Hotel className="h-5 w-5 text-blue-600 mr-2" /> Nearby Hotels</h3>
-                    <div className="space-y-3">
-                      {monastery.nearby.hotels.map((h) => (
-                        <div key={h.id} className="p-3 rounded-xl border border-gray-200 flex items-start justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">{h.name}</div>
-                            <div className="text-xs text-gray-600">{h.amenities.slice(0, 3).join(' • ')}</div>
-                            <div className="text-xs text-gray-500">{h.distance} • {h.pricePerNight} • {h.rating.toFixed(1)}★</div>
+                    <div className="mb-3 text-sm text-gray-600">Powered by OpenStreetMap + OpenTripMap</div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="lg:col-span-2">
+                        <OpenMap
+                          className="w-full h-72 rounded-xl border border-gray-200"
+                          center={center}
+                          zoom={13}
+                          markers={nearby.map(p => ({ id: p.id, position: p.point, title: p.name }))}
+                        />
                           </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => (onAddToPlan ? onAddToPlan('hotel', h.id) : addToPlan('hotel', h.id, h.name))} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"><Heart className="h-4 w-4 text-orange-600" /></button>
-                            <button onClick={() => onBook?.('hotel', h.id)} className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-500 text-sm">Book</button>
+                      <div className="max-h-72 overflow-y-auto border border-gray-200 rounded-xl p-3">
+                        {nearbyLoading ? (
+                          <div className="text-sm text-gray-600">Loading nearby hotels…</div>
+                        ) : nearby.length === 0 ? (
+                          <div className="text-sm text-gray-600">No results found.</div>
+                        ) : (
+                          <ul className="space-y-2">
+                            {nearby.slice(0,30).map((h) => (
+                              <li key={h.id} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                                <div className="text-sm font-medium text-gray-900 truncate">{h.name}</div>
+                                {typeof h.dist === 'number' && (
+                                  <div className="text-xs text-gray-500">{Math.round(h.dist)} m away</div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                           </div>
-                        </div>
-                      ))}
                     </div>
                   </section>
                   )}
@@ -423,20 +573,34 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
                   {(activeTab === 'Restaurants') && (
                   <section className="p-5 rounded-2xl border border-gray-200 bg-white">
                     <h3 className="text-lg font-semibold mb-3 flex items-center"><Utensils className="h-5 w-5 text-green-600 mr-2" /> Nearby Restaurants</h3>
-                    <div className="space-y-3">
-                      {monastery.nearby.restaurants.map((r) => (
-                        <div key={r.id} className="p-3 rounded-xl border border-gray-200 flex items-start justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">{r.name}</div>
-                            <div className="text-xs text-gray-600">{r.cuisine} • {r.priceRange}</div>
-                            <div className="text-xs text-gray-500">{r.distance} • {r.rating.toFixed(1)}★</div>
+                    <div className="mb-3 text-sm text-gray-600">Powered by OpenStreetMap + OpenTripMap</div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="lg:col-span-2">
+                        <OpenMap
+                          className="w-full h-72 rounded-xl border border-gray-200"
+                          center={center}
+                          zoom={13}
+                          markers={nearby.map(p => ({ id: p.id, position: p.point, title: p.name }))}
+                        />
                           </div>
-                          <div className="flex gap-2">
-                            <button onClick={() => (onAddToPlan ? onAddToPlan('restaurant', r.id) : addToPlan('restaurant', r.id, r.name))} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50"><Heart className="h-4 w-4 text-orange-600" /></button>
-                            <button onClick={() => onBook?.('restaurant', r.id)} className="px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-500 text-sm">Reserve</button>
+                      <div className="max-h-72 overflow-y-auto border border-gray-200 rounded-xl p-3">
+                        {nearbyLoading ? (
+                          <div className="text-sm text-gray-600">Loading nearby restaurants…</div>
+                        ) : nearby.length === 0 ? (
+                          <div className="text-sm text-gray-600">No results found.</div>
+                        ) : (
+                          <ul className="space-y-2">
+                            {nearby.slice(0,30).map((r) => (
+                              <li key={r.id} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                                <div className="text-sm font-medium text-gray-900 truncate">{r.name}</div>
+                                {typeof r.dist === 'number' && (
+                                  <div className="text-xs text-gray-500">{Math.round(r.dist)} m away</div>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                           </div>
-                        </div>
-                      ))}
                     </div>
                   </section>
                   )}
@@ -483,6 +647,16 @@ const MonasteryModal: React.FC<Props> = ({ open, onClose, monastery, onAddToPlan
               </div>
             </div>
           </motion.div>
+          {/* Fullscreen VR Viewer */}
+          <VRViewer
+            isOpen={vrOpen}
+            onClose={() => setVrOpen(false)}
+            place={{
+              name: monastery.name,
+              coordinates: { lat: 27.3389, lng: 88.6065 },
+              description: monastery.history
+            }}
+          />
         </motion.div>
       )}
     </AnimatePresence>

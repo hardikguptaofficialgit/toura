@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mountain, Camera, Compass, Backpack, TreePine } from 'lucide-react';
+import { Search, Mountain, Camera, Compass, Backpack, TreePine, AudioWaveform } from 'lucide-react';
+import VoiceChatModal from './VoiceChatModal';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import Silk from './Silk';
 import Navigation from './Navigation';
@@ -73,8 +74,8 @@ const Hero: React.FC = () => {
       entryFee: '₹50 (adults), ₹20 (children) - subject to change',
       contact: { phone: '+91-3592-xxxxx', email: 'info@rumtek.org', website: 'https://example.com/rumtek' },
       photos: [
-        'https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=1200',
-        'https://images.pexels.com/photos/3571551/pexels-photo-3571551.jpeg?auto=compress&cs=tinysrgb&w=1200'
+        '/images/monasteries/rumtek1.png',
+        '/images/monasteries/rumtek2.png'
       ],
       virtualTourUrl: 'https://example.com/rumtek-virtual',
       reviews: [
@@ -107,8 +108,8 @@ const Hero: React.FC = () => {
       timings: '9:00 AM - 5:00 PM',
       entryFee: '₹50',
       photos: [
-        'https://images.unsplash.com/photo-1524499982521-1ffd58dd89ea?q=80&w=1600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1505968409348-bd000797c92e?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/pemayangtse1.png',
+        '/images/monasteries/pemayangtse2.png'
       ],
       virtualTourUrl: 'https://example.com/pemayangtse-virtual',
       reviews: [
@@ -122,8 +123,8 @@ const Hero: React.FC = () => {
       history: 'A 200-year-old monastery believed to be blessed by Lama Drupthob Karpo. Offers dramatic views of Kanchendzonga.',
       timings: '9:00 AM - 5:00 PM', entryFee: 'Free',
       photos: [
-        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/enchey1.png',
+        '/images/monasteries/enchey2.png'
       ],
       reviews: [
         { user: 'Kiran', rating: 4, comment: 'Quiet, serene, and close to town.', date: 'Mar 2024' },
@@ -136,8 +137,8 @@ const Hero: React.FC = () => {
       history: 'One of the holiest monasteries of Nyingma sect, perched on a hill between Rangeet and Rathong rivers.',
       timings: '7:00 AM - 6:00 PM', entryFee: '₹30',
       photos: [
-        'https://images.unsplash.com/photo-1470094003057-96f6f03fa2c1?q=80&w=1600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1494475673543-6a6a27143b22?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/tashiding1.png',
+        '/images/monasteries/tashiding2.png'
       ],
       reviews: [
         { user: 'Dev', rating: 5, comment: 'Sacred place with powerful spiritual vibe.', date: 'Apr 2024' }
@@ -149,7 +150,8 @@ const Hero: React.FC = () => {
       history: 'Founded in 1701, the oldest monastery in Sikkim; also called Yuksom Monastery.',
       timings: '9:00 AM - 5:00 PM', entryFee: '₹20',
       photos: [
-        'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/dubdi1.png',
+        '/images/monasteries/dubdi2.png'
       ],
       reviews: [
         { user: 'Arun', rating: 4, comment: 'Short hike rewards with solitude and heritage.', date: 'Oct 2024' }
@@ -161,7 +163,8 @@ const Hero: React.FC = () => {
       history: 'Established in 1721, known for its annual festival before Losoong.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
       photos: [
-        'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/phensang1.png',
+        '/images/monasteries/phensang2.png'
       ],
       reviews: [
         { user: 'Nima', rating: 5, comment: 'Less-crowded and authentic experience.', date: 'Dec 2024' }
@@ -173,8 +176,8 @@ const Hero: React.FC = () => {
       history: 'Important Kagyu monastery famous for its sprawling complex and sacred relics.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹30',
       photos: [
-        'https://images.unsplash.com/photo-1606425270219-4c06c574ea39?q=80&w=1600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/ralang1.png',
+        '/images/monasteries/ralang2.png'
       ],
       reviews: [
         { user: 'Tashi', rating: 5, comment: 'Colorful architecture and scenic surroundings.', date: 'Sep 2024' }
@@ -186,7 +189,8 @@ const Hero: React.FC = () => {
       history: 'Modern monastery renowned for its expansive courtyard and training of young monks.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹30',
       photos: [
-        'https://images.unsplash.com/photo-1522780550169-0b9f1f0a0f9b?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/lingdum1.png',
+        '/images/monasteries/lingdum2.png'
       ],
       reviews: [
         { user: 'Alicia', rating: 4, comment: 'Great for photography; peaceful.', date: 'Aug 2024' }
@@ -198,7 +202,8 @@ const Hero: React.FC = () => {
       history: 'Built in early 18th century; known for murals and masked dances during festivals.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
       photos: [
-        'https://images.unsplash.com/photo-1517777596322-5a1b2f3c0f2e?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/phodong1.png',
+        '/images/monasteries/phodong2.png'
       ],
       reviews: [
         { user: 'Rahul', rating: 4, comment: 'Atmospheric and historic.', date: 'Feb 2025' }
@@ -210,7 +215,8 @@ const Hero: React.FC = () => {
       history: 'One of the oldest monasteries in Sikkim, reachable via a short forested trek.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
       photos: [
-        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/sangachoeling1.png',
+        '/images/monasteries/sangachoeling2.png'
       ],
       reviews: [
         { user: 'Ishita', rating: 5, comment: 'Sunset views are incredible!', date: 'Oct 2024' }
@@ -222,7 +228,8 @@ const Hero: React.FC = () => {
       history: 'Sacred lake complex with monastery; believed that not a leaf is allowed to float on the water by birds.',
       timings: '8:00 AM - 5:00 PM', entryFee: '₹20',
       photos: [
-        'https://images.unsplash.com/photo-1521207418485-99c705420785?q=80&w=1600&auto=format&fit=crop'
+        '/images/monasteries/khecheopalri1.png',
+        '/images/monasteries/khecheopalri2.png'
       ],
       reviews: [
         { user: 'Kabir', rating: 4, comment: 'Mystical experience by the lake.', date: 'Nov 2024' }
@@ -355,6 +362,7 @@ const Hero: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMonastery, setSelectedMonastery] = useState<MonasteryInfo | null>(null);
   const [resultsOpen, setResultsOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
@@ -495,8 +503,11 @@ const Hero: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
           >
-            {/* Navigation */}
-            <Navigation />
+            {/* Navigation - hidden when any modal is open */}
+            {(!modalOpen && !resultsOpen) && (
+              <Navigation onSignInClick={() => {}}
+              />
+            )}
             
             {/* Background Images Overlay */}
             <div className="absolute inset-0 w-full h-full">
@@ -698,8 +709,8 @@ const Hero: React.FC = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 1, delay: 1 }}
                 >
-                  <div className={`flex items-center px-4 sm:px-5 py-3 sm:py-4 rounded-full shadow-lg border h-14 sm:h-16 w-full bg-black/90 border-gray-700`}>
-                    <Search className={`h-6 w-6 mr-4 flex-shrink-0 text-gray-400`} />
+                  <div className={`flex items-center px-4 sm:px-5 py-3 sm:py-4 rounded-full shadow-lg border h-14 sm:h-16 w-full bg-white/95 border-orange-200`}>
+                    <Search className={`h-6 w-6 mr-4 flex-shrink-0 text-orange-500`} />
                     <input
                       type="text"
                       value={searchQuery}
@@ -708,13 +719,21 @@ const Hero: React.FC = () => {
                       onFocus={() => setShowSuggestions(searchQuery.length > 0)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       placeholder={currentPlaceholder}
-                      className={`flex-1 text-base sm:text-lg bg-transparent outline-none min-w-0 text-white placeholder-gray-500`}
+                      className={`flex-1 text-base sm:text-lg bg-transparent outline-none min-w-0 text-gray-900 placeholder-gray-500`}
                     />
                     <button 
                       onClick={handleSearch}
-                      className="ml-3 sm:ml-4 px-4 sm:px-6 py-2 bg-white text-black font-semibold rounded-full shadow"
+                      className="ml-3 sm:ml-4 px-4 sm:px-6 py-2 bg-orange-500 text-white font-semibold rounded-full shadow hover:bg-orange-600 transition-colors"
                     >
                       Search
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Voice search"
+                      onClick={() => setVoiceOpen(true)}
+                      className="ml-2 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-orange-600 border border-orange-200 shadow hover:bg-orange-50"
+                    >
+                      <AudioWaveform className="w-5 h-5" />
                     </button>
                   </div>
 
@@ -733,10 +752,10 @@ const Hero: React.FC = () => {
                             return (
                               <div
                                 key={`${suggestion.text}-${index}`}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-gray-900 hover:bg-gray-50`}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-gray-900 hover:bg-orange-50`}
                                 onMouseDown={() => handleSuggestionClick(suggestion.text)}
                               >
-                                <IconComponent className={`h-5 w-5 text-blue-600`} />
+                                <IconComponent className={`h-5 w-5 text-orange-600`} />
                                 <div className="flex-1 overflow-hidden">
                                   <div className={`font-medium text-gray-900`}>{suggestion.text}</div>
                                   <div className={`text-sm text-orange-600`}>Monastery</div>
@@ -784,6 +803,7 @@ const Hero: React.FC = () => {
         items={filteredSuggestions.map(s => ({ name: s.text }))}
         onSelect={(name) => { handleSuggestionClick(name); setResultsOpen(false); }}
       />
+      <VoiceChatModal isOpen={voiceOpen} onClose={() => setVoiceOpen(false)} />
     </section>
   );
 };

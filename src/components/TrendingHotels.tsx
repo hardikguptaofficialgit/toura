@@ -1,8 +1,59 @@
 import React from 'react';
-import { Eye, ArrowRight, Calendar } from 'lucide-react';
+import { Eye, ArrowRight, Calendar, Scroll, Crown, Gem, Star, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+// Theme removed; default to light mode
 
 const TrendingCollections = () => {
+  const isDarkMode = false;
+
+  // Floating cultural icons for background animation
+  const FloatingCulturalIcons = () => {
+    const icons = [
+      { Icon: Scroll, delay: 0.5, position: { top: '20%', left: '12%' } },
+      { Icon: Crown, delay: 2, position: { top: '15%', right: '10%' } },
+      { Icon: Gem, delay: 3.5, position: { top: '75%', left: '8%' } },
+      { Icon: Star, delay: 5, position: { top: '65%', right: '12%' } },
+      { Icon: Sparkles, delay: 6.5, position: { top: '45%', left: '6%' } },
+      { Icon: Zap, delay: 8, position: { top: '85%', right: '8%' } },
+      { Icon: Scroll, delay: 9.5, position: { top: '8%', right: '15%' } },
+      { Icon: Crown, delay: 11, position: { top: '90%', left: '14%' } },
+    ];
+
+    return (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {icons.map(({ Icon, delay, position }, index) => (
+          <motion.div
+            key={index}
+            className="absolute"
+            style={position}
+            initial={{ opacity: 0, scale: 0, rotate: -120 }}
+            animate={{ 
+              opacity: [0, 0.2, 0.35, 0.2, 0],
+              scale: [0, 0.7, 1.1, 0.7, 0],
+              rotate: [0, 240, 480],
+              y: [0, -15, 0, 15, 0],
+              x: [0, -8, 0, 8, 0]
+            }}
+            transition={{
+              duration: 18,
+              delay: delay,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Icon 
+              className={`h-7 w-7 ${
+                isDarkMode 
+                  ? 'text-purple-400/25' 
+                  : 'text-purple-600/30'
+              }`} 
+            />
+          </motion.div>
+        ))}
+      </div>
+    );
+  };
+
   const collections = [
     {
       id: 1,
@@ -57,8 +108,25 @@ const TrendingCollections = () => {
   };
 
   return (
-    <section id="collections" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="collections" className="relative py-24 bg-white dark:bg-black overflow-hidden">
+      {/* Floating Background Animations */}
+      <FloatingCulturalIcons />
+      
+      {/* Gradient Background Overlay */}
+      <motion.div
+        className="absolute inset-0 opacity-20"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 0.2 }}
+        transition={{ duration: 2.5 }}
+        viewport={{ once: true }}
+        style={{
+          background: isDarkMode
+            ? 'radial-gradient(circle at 30% 40%, rgba(147, 51, 234, 0.15) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(236, 72, 153, 0.1) 0%, transparent 50%)'
+            : 'radial-gradient(circle at 30% 40%, rgba(147, 51, 234, 0.08) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(236, 72, 153, 0.06) 0%, transparent 50%)'
+        }}
+      />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -66,10 +134,10 @@ const TrendingCollections = () => {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Sacred Collections
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Explore precious artifacts and treasures preserved through digital heritage
           </p>
         </motion.div>
@@ -78,7 +146,7 @@ const TrendingCollections = () => {
           {collections.map((collection, index) => (
             <motion.div
               key={collection.id}
-              className="group bg-white shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 overflow-hidden"
+              className="group bg-white dark:bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-800 overflow-hidden"
               style={{
                 clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)'
               }}
@@ -91,7 +159,7 @@ const TrendingCollections = () => {
                 <img
                   src={collection.image}
                   alt={collection.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 
@@ -101,27 +169,27 @@ const TrendingCollections = () => {
               </div>
 
               <div className="p-6">
-                <h3 className="font-bold text-lg text-gray-900 mb-2">{collection.name}</h3>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{collection.name}</h3>
                 
-                <div className="flex items-center text-gray-500 mb-3">
+                <div className="flex items-center text-gray-500 dark:text-gray-400 mb-3">
                   <Calendar className="h-4 w-4 mr-2" />
                   <span className="text-sm">{collection.period}</span>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 leading-relaxed">
                   {collection.description}
                 </p>
 
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-500">
-                    <span className="font-semibold text-gray-900">{collection.items}</span> items
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-semibold text-gray-900 dark:text-white">{collection.items}</span> items
                   </div>
-                  <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">
                     {collection.monastery}
                   </div>
                 </div>
 
-                <button className="w-full inline-flex items-center justify-center text-blue-600 font-semibold hover:text-blue-700 transition-colors group">
+                <button className="w-full inline-flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors group">
                   <Eye className="h-4 w-4 mr-2" />
                   <span>View Collection</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -132,7 +200,7 @@ const TrendingCollections = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="inline-flex items-center px-8 py-3 bg-gray-50 border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all duration-300">
+          <button className="inline-flex items-center px-8 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300">
             <span>View All Collections</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </button>

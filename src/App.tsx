@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Hero from './components/Hero';
 import PopularDestinations from './components/PopularDestinations';
 import TrendingHotels from './components/TrendingHotels';
 import PopularRestaurants from './components/PopularRestaurants';
 import ThingsToDo from './components/ThingsToDo';
 import TravelStories from './components/TravelStories';
-import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
+import MobileRequiredNotification from './components/MobileRequiredNotification';
 import { X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const App: React.FC = () => {
+// Main App Content Component (inside AuthProvider)
+const AppContent: React.FC = () => {
+  const { user, userData } = useAuth();
+  const [showMobileNotification, setShowMobileNotification] = useState(false);
   const [sosOpen, setSosOpen] = useState(false);
 
   const sosContacts = [
@@ -20,15 +25,38 @@ const App: React.FC = () => {
     { name: 'Tourist Helpline', number: '1800-345-6789' },
   ];
 
+  // Check if user needs to add mobile number
+  useEffect(() => {
+    if (user && userData && !userData.phoneNumber) {
+      const hasSeenNotification = localStorage.getItem(`mobile-notification-${user.uid}`);
+      if (!hasSeenNotification) {
+        setShowMobileNotification(true);
+      }
+    } else {
+      setShowMobileNotification(false);
+    }
+  }, [user, userData]);
+
+  const handleCloseMobileNotification = () => {
+    setShowMobileNotification(false);
+    if (user) {
+      localStorage.setItem(`mobile-notification-${user.uid}`, 'seen');
+    }
+  };
+
+  const handleOpenProfileFromNotification = () => {
+    setShowMobileNotification(false);
+    console.log('Profile would open here - functionality can be added later');
+  };
+
   return (
-    <div className="min-h-screen bg-white transition-colors duration-300 relative">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 relative">
       <Hero />
       <PopularDestinations />
       <TrendingHotels />
       <PopularRestaurants />
       <ThingsToDo />
       <TravelStories />
-      <Footer />
       <Chatbot />
 
       {/* SOS Floating Button */}
@@ -82,8 +110,25 @@ const App: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Required Notification */}
+      <MobileRequiredNotification
+        isVisible={showMobileNotification}
+        onClose={handleCloseMobileNotification}
+        onOpenProfile={handleOpenProfileFromNotification}
+      />
     </div>
   );
 };
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </LanguageProvider>
+  );
+}
 
 export default App;
