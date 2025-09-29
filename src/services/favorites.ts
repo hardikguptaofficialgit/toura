@@ -1,8 +1,5 @@
 // Favorites and sharing service
-
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { useAuth } from '../contexts/AuthContext';
+import { getUserData, updateFavorites, updateItineraries } from '../lib/localAuth';
 
 export interface FavoritePlace {
   id: string;
@@ -30,24 +27,13 @@ class FavoritesService {
   // Add place to favorites
   async addToFavorites(userId: string, place: FavoritePlace): Promise<void> {
     try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        await updateDoc(userDocRef, {
-          favorites: arrayUnion({
-            ...place,
-            savedAt: new Date().toISOString()
-          })
-        });
-      } else {
-        await setDoc(userDocRef, {
-          favorites: [{
-            ...place,
-            savedAt: new Date().toISOString()
-          }]
-        }, { merge: true });
-      }
+      const user = getUserData(userId);
+      const favorites = user?.favorites || [];
+      const updated = [
+        ...favorites,
+        { ...place, savedAt: new Date().toISOString() }
+      ];
+      updateFavorites(userId, updated);
     } catch (error) {
       console.error('Error adding to favorites:', error);
       throw error;
@@ -57,18 +43,10 @@ class FavoritesService {
   // Remove place from favorites
   async removeFromFavorites(userId: string, placeId: string): Promise<void> {
     try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const favorites = userData.favorites || [];
-        const updatedFavorites = favorites.filter((fav: FavoritePlace) => fav.id !== placeId);
-        
-        await updateDoc(userDocRef, {
-          favorites: updatedFavorites
-        });
-      }
+      const user = getUserData(userId);
+      const favorites = user?.favorites || [];
+      const updatedFavorites = favorites.filter((fav: FavoritePlace) => fav.id !== placeId);
+      updateFavorites(userId, updatedFavorites);
     } catch (error) {
       console.error('Error removing from favorites:', error);
       throw error;
@@ -78,15 +56,8 @@ class FavoritesService {
   // Get user's favorites
   async getFavorites(userId: string): Promise<FavoritePlace[]> {
     try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return userData.favorites || [];
-      }
-      
-      return [];
+      const user = getUserData(userId);
+      return user?.favorites || [];
     } catch (error) {
       console.error('Error getting favorites:', error);
       return [];
@@ -118,20 +89,10 @@ class FavoritesService {
         updatedAt: new Date().toISOString()
       };
 
-      const userDocRef = doc(db, 'users', userId);
-      await updateDoc(userDocRef, {
-        itineraries: arrayUnion(itineraryData)
-      });
-
-      // If public, also save to public itineraries collection
-      if (itinerary.isPublic) {
-        const publicItineraryRef = doc(db, 'publicItineraries', itineraryId);
-        await setDoc(publicItineraryRef, {
-          ...itineraryData,
-          userId,
-          userName: 'Anonymous' // You can get this from user profile
-        });
-      }
+      const user = getUserData(userId);
+      const itineraries = user?.itineraries || [];
+      const updated = [...itineraries, itineraryData];
+      updateItineraries(userId, updated);
 
       return itineraryId;
     } catch (error) {
@@ -143,15 +104,8 @@ class FavoritesService {
   // Get user's itineraries
   async getItineraries(userId: string): Promise<Itinerary[]> {
     try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return userData.itineraries || [];
-      }
-      
-      return [];
+      const user = getUserData(userId);
+      return user?.itineraries || [];
     } catch (error) {
       console.error('Error getting itineraries:', error);
       return [];

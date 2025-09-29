@@ -4,6 +4,7 @@ import VoiceChatModal from './VoiceChatModal';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import Silk from './Silk';
 import Navigation from './Navigation';
+import SignInModal from './SignInModal';
 import MonasteryModal, { MonasteryInfo } from './MonasteryModal';
 import MonasteryResultsModal from './MonasteryResultsModal';
 
@@ -363,6 +364,7 @@ const Hero: React.FC = () => {
   const [selectedMonastery, setSelectedMonastery] = useState<MonasteryInfo | null>(null);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
@@ -504,9 +506,8 @@ const Hero: React.FC = () => {
             transition={{ duration: 1 }}
           >
             {/* Navigation - hidden when any modal is open */}
-            {(!modalOpen && !resultsOpen) && (
-              <Navigation onSignInClick={() => {}}
-              />
+            {(!modalOpen && !resultsOpen && !authOpen) && (
+              <Navigation onSignInClick={() => setAuthOpen(true)} />
             )}
             
             {/* Background Images Overlay */}
@@ -804,6 +805,7 @@ const Hero: React.FC = () => {
         onSelect={(name) => { handleSuggestionClick(name); setResultsOpen(false); }}
       />
       <VoiceChatModal isOpen={voiceOpen} onClose={() => setVoiceOpen(false)} />
+      <SignInModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </section>
   );
 };

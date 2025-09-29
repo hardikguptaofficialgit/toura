@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Phone, Eye, EyeOff, ArrowLeft, Chrome, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { sendOTP, verifyOTP, cleanupRecaptcha } from '../lib/phoneAuth';
 
 interface InlineModalProps {
   isOpen: boolean;
@@ -98,10 +97,10 @@ interface SignInModalProps {
   onClose: () => void;
 }
 
-type AuthMethod = 'main' | 'email' | 'mobile';
+type AuthMethod = 'main' | 'email';
 
 const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
+  const { signInWithEmail, signUpWithEmail } = useAuth();
   const [currentMethod, setCurrentMethod] = useState<AuthMethod>('main');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,49 +112,17 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  
   const [mobileForEmail, setMobileForEmail] = useState('');
 
   // Cleanup effect when modal closes
   useEffect(() => {
     if (!isOpen) {
-      cleanupRecaptcha();
       resetForm();
     }
   }, [isOpen]);
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const result = await signInWithGoogle();
-      
-      // Check if user has mobile number, if not prompt for it
-      const { doc, getDoc } = await import('firebase/firestore');
-      const { db } = await import('../lib/firebase');
-      const userDocRef = doc(db, 'users', result.user.uid);
-      const userDoc = await getDoc(userDocRef);
-      const userData = userDoc.data();
-      
-      if (!userData?.phoneNumber) {
-        setError('Please complete your profile by adding a mobile number in Profile Settings.');
-      } else {
-        setSuccess('Successfully signed in with Google!');
-      }
-      
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    } catch (error: any) {
-      setError(error.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Google sign-in removed
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,38 +135,11 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (isSignUp && !mobileForEmail.trim()) {
-      setError('Mobile number is required');
-      setIsLoading(false);
-      return;
-    }
-
-    if (isSignUp && mobileForEmail.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
-      setIsLoading(false);
-      return;
-    }
+    // No mobile requirement in local auth
 
     try {
       if (isSignUp) {
-        const result = await signUpWithEmail(email, password);
-        
-        // Save mobile number to Firestore
-        if (result.user) {
-          const { doc, setDoc } = await import('firebase/firestore');
-          const { db } = await import('../lib/firebase');
-          const userDocRef = doc(db, 'users', result.user.uid);
-          await setDoc(userDocRef, {
-            email: email,
-            phoneNumber: mobileForEmail,
-            displayName: result.user.displayName || email.split('@')[0],
-            avatar: '🧑‍💼',
-            bio: '',
-            createdAt: new Date().toISOString(),
-            lastUpdated: new Date().toISOString()
-          }, { merge: true });
-        }
-        
+        await signUpWithEmail(email, password);
         setSuccess('Account created successfully!');
       } else {
         await signInWithEmail(email, password);
@@ -217,91 +157,18 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleMobileSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    if (!otpSent) {
-      try {
-        const phoneNumber = `+91${mobile}`;
-        const result = await sendOTP(phoneNumber);
-        setConfirmationResult(result);
-        setOtpSent(true);
-        setSuccess(`OTP sent to ${phoneNumber}`);
-      } catch (error: any) {
-        setError(error.message || 'Failed to send OTP. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      try {
-        const result = await verifyOTP(confirmationResult, otp);
-        
-        // Save mobile number and user data to Firestore
-        if (result.user) {
-          const { doc, setDoc } = await import('firebase/firestore');
-          const { db } = await import('../lib/firebase');
-          const userDocRef = doc(db, 'users', result.user.uid);
-          await setDoc(userDocRef, {
-            phoneNumber: mobile,
-            displayName: result.user.displayName || `User_${mobile}`,
-            avatar: '🧑‍💼',
-            email: result.user.email || '',
-            bio: '',
-            createdAt: new Date().toISOString(),
-            lastUpdated: new Date().toISOString()
-          }, { merge: true });
-        }
-        
-        setSuccess('Successfully signed in with mobile!');
-        setTimeout(() => {
-          onClose();
-        }, 1000);
-      } catch (error: any) {
-        setError(error.message || 'Invalid OTP. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleResendOtp = async () => {
-    if (!mobile || mobile.length !== 10) {
-      setError('Enter a valid 10-digit mobile number to resend OTP');
-      return;
-    }
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-    try {
-      const phoneNumber = `+91${mobile}`;
-      const result = await sendOTP(phoneNumber);
-      setConfirmationResult(result);
-      setOtp('');
-      setOtpSent(true);
-      setSuccess(`OTP resent to ${phoneNumber}`);
-    } catch (error: any) {
-      setError(error.message || 'Failed to resend OTP. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Phone auth removed
 
   const resetForm = () => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setMobile('');
     setMobileForEmail('');
-    setOtp('');
-    setOtpSent(false);
     setShowPassword(false);
     setCurrentMethod('main');
     setError('');
     setSuccess('');
     setIsSignUp(false);
-    setConfirmationResult(null);
   };
 
   const handleClose = () => {
@@ -317,18 +184,6 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
       className="w-full max-w-md space-y-6"
     >
 
-      {/* Google Sign In */}
-      <motion.button
-        onClick={handleGoogleSignIn}
-        disabled={isLoading}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className={`w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 bg-white text-gray-900 hover:bg-gray-50 border border-gray-300 shadow-lg hover:shadow-xl ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        <Chrome className="h-6 w-6 text-blue-500" />
-        <span>Continue with Google</span>
-      </motion.button>
-
       {/* Email Sign In */}
       <motion.button
         onClick={() => setCurrentMethod('email')}
@@ -340,16 +195,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
         <span>Continue with Email</span>
       </motion.button>
 
-      {/* Mobile Sign In */}
-      <motion.button
-        onClick={() => setCurrentMethod('mobile')}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-300 shadow-lg hover:shadow-xl"
-      >
-        <Phone className="h-6 w-6" />
-        <span>Continue with Mobile</span>
-      </motion.button>
+      
 
       {/* Terms and Privacy */}
       <p className="text-sm text-center text-white">
@@ -492,83 +338,13 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
     </motion.div>
   );
 
-  const renderMobileForm = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="w-full max-w-md"
-    >
-
-      <form onSubmit={handleMobileSignIn} className="space-y-6">
-        {!otpSent ? (
-          /* Mobile Number Input */
-          <div>
-            <label className="block text-sm font-medium mb-2 text-white">
-              Mobile Number
-            </label>
-            <div className="flex">
-              <span className="flex items-center px-3 py-3 rounded-l-xl border-2 border-r-0 bg-gray-50 border-gray-300 text-black">
-                +91
-              </span>
-              <input
-                type="tel"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                required
-                className="flex-1 px-4 py-3 text-black rounded-r-xl border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white border-gray-300 focus:border-orange-500"
-                placeholder="9876543210"
-                maxLength={10}
-              />
-            </div>
-          </div>
-        ) : (
-          /* OTP Input */
-          <div>
-            <label className="block text-sm font-medium mb-2 text-white">
-              Enter OTP
-            </label>
-            <input
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-2xl tracking-widest bg-white border-gray-300 text-gray-900 focus:border-orange-500"
-              placeholder="123456"
-              maxLength={6}
-            />
-            <p className="text-sm mt-2 text-center text-white">
-              Didn't receive OTP?{' '}
-              <button type="button" onClick={handleResendOtp} disabled={isLoading} className="text-orange-500 hover:text-orange-600 font-medium disabled:opacity-50">
-                Resend
-              </button>
-            </p>
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <motion.button
-          type="submit"
-          disabled={isLoading}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 bg-orange-500 text-white hover:bg-orange-600 shadow-lg hover:shadow-xl ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {isLoading ? (otpSent ? 'Verifying...' : 'Sending OTP...') : (otpSent ? 'Verify OTP' : 'Send OTP')}
-        </motion.button>
-      </form>
-
-      {/* Recaptcha Container (Hidden) */}
-      <div id="recaptcha-container" className="hidden"></div>
-    </motion.div>
-  );
+  // Mobile form removed
 
   const getModalTitle = () => {
     switch (currentMethod) {
       case 'email':
         return isSignUp ? 'Create Account' : 'Sign in with Email';
-      case 'mobile':
-        return 'Sign in with Mobile';
+      
       default:
         return 'Welcome to Toura';
     }
@@ -578,8 +354,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
     switch (currentMethod) {
       case 'email':
         return isSignUp ? 'Create your new account' : 'Enter your email and password';
-      case 'mobile':
-        return otpSent ? 'Enter the OTP sent to your mobile' : 'Enter your mobile number';
+      
       default:
         return 'Sign in to start your journey';
     }
@@ -637,7 +412,6 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
           <AnimatePresence mode="wait">
             {currentMethod === 'main' && renderMainOptions()}
             {currentMethod === 'email' && renderEmailForm()}
-            {currentMethod === 'mobile' && renderMobileForm()}
           </AnimatePresence>
         </div>
       </div>

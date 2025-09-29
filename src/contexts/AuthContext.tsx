@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, UserCredential } from 'firebase/auth';
-import { auth, signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser, formatUserData, initializeFirestoreConnection } from '../lib/firebase';
+import { getSession, signInWithEmail as localSignInWithEmail, signUpWithEmail as localSignUpWithEmail, signOut as localSignOut, formatUserData as localFormatUserData, SessionUser } from '../lib/localAuth';
 
 interface UserData {
   uid: string;
@@ -14,12 +13,11 @@ interface UserData {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: SessionUser | null;
   userData: UserData | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<UserCredential>;
-  signInWithEmail: (email: string, password: string) => Promise<UserCredential>;
-  signUpWithEmail: (email: string, password: string) => Promise<UserCredential>;
+  signInWithEmail: (email: string, password: string) => Promise<{ user: SessionUser }>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ user: SessionUser }>;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
 }
@@ -39,52 +37,29 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize Firestore connection on app start
   useEffect(() => {
-    initializeFirestoreConnection();
-  }, []);
-
-  useEffect(() => {
-    // Set a timeout to ensure loading doesn't hang indefinitely
-    const loadingTimeout = setTimeout(() => {
-      setLoading(false);
-    }, 5000);
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      clearTimeout(loadingTimeout);
-      setUser(user);
-      if (user) {
-        const userData = await formatUserData(user);
-        setUserData(userData);
-      } else {
-        setUserData(null);
+    const current = getSession();
+    setUser(current);
+    const initialize = async () => {
+      if (current) {
+        const data = await localFormatUserData(current);
+        setUserData(data as any);
       }
       setLoading(false);
-    });
-
-    return () => {
-      unsubscribe();
-      clearTimeout(loadingTimeout);
     };
+    initialize();
   }, []);
-
-  const handleSignInWithGoogle = async () => {
-    try {
-      const result = await signInWithGoogle();
-      return result;
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      throw error;
-    }
-  };
 
   const handleSignInWithEmail = async (email: string, password: string) => {
     try {
-      const result = await signInWithEmail(email, password);
+      const result = await localSignInWithEmail(email, password);
+      setUser(result.user);
+      const data = await localFormatUserData(result.user);
+      setUserData(data as any);
       return result;
     } catch (error) {
       console.error('Email sign-in error:', error);
@@ -94,7 +69,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const handleSignUpWithEmail = async (email: string, password: string) => {
     try {
-      const result = await signUpWithEmail(email, password);
+      const result = await localSignUpWithEmail(email, password);
+      setUser(result.user);
+      const data = await localFormatUserData(result.user);
+      setUserData(data as any);
       return result;
     } catch (error) {
       console.error('Email sign-up error:', error);
@@ -104,7 +82,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const handleSignOut = async () => {
     try {
-      await signOutUser();
+      await localSignOut();
+      setUser(null);
+      setUserData(null);
     } catch (error) {
       console.error('Sign-out error:', error);
       throw error;
@@ -126,7 +106,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     userData,
     loading,
-    signInWithGoogle: handleSignInWithGoogle,
     signInWithEmail: handleSignInWithEmail,
     signUpWithEmail: handleSignUpWithEmail,
     signOut: handleSignOut,
