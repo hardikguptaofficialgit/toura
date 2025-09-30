@@ -1,4 +1,5 @@
-// AI Trip Generator service using Gemini API
+// AI Trip Generator service using Google GenAI SDK
+import { GoogleGenAI } from '@google/genai';
 export interface TripSuggestion {
   name: string;
   destination: string;
@@ -31,55 +32,59 @@ export interface AIRequest {
 }
 
 export class AITripGeneratorService {
-  private static readonly GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-  private static readonly GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+  private static readonly GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+  private static readonly GEMINI_MODEL = 'gemini-2.5-flash';
+
+  private static getClient(): GoogleGenAI {
+    if (!this.GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured. Please set VITE_GEMINI_API_KEY in your environment variables.');
+    }
+    return new GoogleGenAI({ apiKey: this.GEMINI_API_KEY });
+  }
 
   // Generate trip suggestions using AI
   static async generateTripSuggestions(request: AIRequest): Promise<TripSuggestion[]> {
-    if (!this.GEMINI_API_KEY) {
-      throw new Error('Gemini API key not configured');
-    }
+    const client = this.getClient();
 
     try {
       const prompt = this.buildPrompt(request);
       
-      const response = await fetch(
-        `${this.GEMINI_API_URL}?key=${this.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 2048,
-            }
-          })
+      const result = await client.models.generateContent({
+        model: this.GEMINI_MODEL,
+        contents: prompt
+      } as any);
+
+      let generatedText: any = (result as any)?.text;
+      if (!generatedText) {
+        const maybeFunc = (result as any)?.response?.text;
+        if (typeof maybeFunc === 'function') {
+          try {
+            generatedText = await maybeFunc.call((result as any).response);
+          } catch {}
+        } else {
+          generatedText = (result as any)?.response?.text;
         }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
       }
-
-      const data = await response.json();
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!generatedText) {
+        const candidates = (result as any)?.response?.candidates || (result as any)?.candidates;
+        if (Array.isArray(candidates) && candidates.length > 0) {
+          const parts = candidates[0]?.content?.parts;
+          if (Array.isArray(parts) && parts.length > 0) {
+            generatedText = parts.map((p: any) => p?.text).filter(Boolean).join('\n');
+          }
+        }
+      }
       
       if (!generatedText) {
-        throw new Error('No content generated from AI');
+        throw new Error('No content generated from AI. The response may have been blocked by safety filters.');
       }
 
       return this.parseAIResponse(generatedText);
     } catch (error) {
       console.error('AI trip generation error:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to generate trip suggestions');
     }
   }
@@ -204,9 +209,7 @@ Generate a well-balanced itinerary that matches the user's preferences.`;
 
   // Enhance existing trip with AI suggestions
   static async enhanceTrip(tripDescription: string, existingStops: TripStop[]): Promise<TripStop[]> {
-    if (!this.GEMINI_API_KEY) {
-      throw new Error('Gemini API key not configured');
-    }
+    const client = this.getClient();
 
     try {
       const prompt = `You are a travel planning expert. Based on this trip description and existing stops, suggest additional stops that would complement the itinerary:
@@ -237,35 +240,31 @@ Focus on:
 3. Considering proximity to existing stops
 4. Matching the trip's theme and style`;
 
-      const response = await fetch(
-        `${this.GEMINI_API_URL}?key=${this.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 1024,
-            }
-          })
+      const result = await client.models.generateContent({
+        model: this.GEMINI_MODEL,
+        contents: prompt
+      } as any);
+
+      let generatedText: any = (result as any)?.text;
+      if (!generatedText) {
+        const maybeFunc = (result as any)?.response?.text;
+        if (typeof maybeFunc === 'function') {
+          try {
+            generatedText = await maybeFunc.call((result as any).response);
+          } catch {}
+        } else {
+          generatedText = (result as any)?.response?.text;
         }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
       }
-
-      const data = await response.json();
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!generatedText) {
+        const candidates = (result as any)?.response?.candidates || (result as any)?.candidates;
+        if (Array.isArray(candidates) && candidates.length > 0) {
+          const parts = candidates[0]?.content?.parts;
+          if (Array.isArray(parts) && parts.length > 0) {
+            generatedText = parts.map((p: any) => p?.text).filter(Boolean).join('\n');
+          }
+        }
+      }
       
       if (!generatedText) {
         return [];

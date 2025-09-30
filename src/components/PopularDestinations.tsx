@@ -176,15 +176,22 @@ const PopularDestinations = () => {
   ];
 
   const handleVRExperience = async (monastery: any) => {
-    if (!monastery.hasVR) {
-      alert('VR experience not available for this monastery yet.');
-      return;
-    }
-
     try {
       // Load available panoramas
       const panoramas = await VRService.loadPanoramas();
       
+      // Prefer monastery-specific pano if present
+      const specific = await VRService.getMonasteryPanoramaIfAvailable(
+        monastery.name,
+        monastery.coordinates
+      );
+      if (specific) {
+        setSelectedPanorama(specific);
+        setSelectedMonastery(monastery);
+        setIsVRViewerOpen(true);
+        return;
+      }
+
       // Find panoramas near this monastery
       const nearbyPanoramas = VRService.getPanoramasByLocation(
         monastery.coordinates.lat,

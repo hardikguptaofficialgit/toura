@@ -23,6 +23,46 @@ export interface VRHotspot {
 export class VRService {
   private static panoramas: VRPanorama[] = [];
 
+  private static toMonasterySlug(name: string): string {
+    const lower = name.toLowerCase();
+    const withoutMonastery = lower.replace(/\bmonastery\b/g, '').trim();
+    const compact = withoutMonastery.replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, '');
+    // e.g., "Rumtek Monastery" -> "rumtek" -> "rumtekpano.jpg"
+    return `${compact}pano.jpg`;
+  }
+
+  private static async imageExists(path: string): Promise<boolean> {
+    try {
+      const res = await fetch(path, { method: 'HEAD' });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  static async getMonasteryPanoramaIfAvailable(
+    name: string,
+    coordinates?: { lat: number; lng: number }
+  ): Promise<VRPanorama | null> {
+    const fileName = this.toMonasterySlug(name);
+    const imagePath = `/images/monasteries/${fileName}`;
+    const exists = await this.imageExists(imagePath);
+    if (!exists) return null;
+
+    const idBase = Math.abs(
+      Array.from(`${name}-${imagePath}`).reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+    );
+    return {
+      id: idBase,
+      name: `${name} - 360° View`,
+      image: imagePath,
+      description: `Immersive 360° view of ${name}.`,
+      location: name,
+      coordinates: coordinates || { lat: 27.3314, lng: 88.6138 },
+      hotspots: []
+    };
+  }
+
   static async loadPanoramas(): Promise<VRPanorama[]> {
     if (this.panoramas.length === 0) {
       try {

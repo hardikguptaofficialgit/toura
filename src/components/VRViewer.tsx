@@ -48,20 +48,31 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
     return () => { document.body.classList.remove('vr-open'); };
   }, [isOpen]);
 
-  // Load available panoramas
+  // Load available panoramas and prefer monastery-specific pano files like rumtekpano.jpg
   useEffect(() => {
     const loadPanoramas = async () => {
       try {
         const panoramas = await VRService.loadPanoramas();
         setAvailablePanoramas(panoramas);
-        
-        // Find panoramas near the current place
-        const nearbyPanoramas = VRService.getPanoramasByLocation(
-          place.coordinates.lat, 
-          place.coordinates.lng, 
-          0.5 // 0.5 degree radius
+
+        // Prefer a specific monastery panorama if available
+        const specific = await VRService.getMonasteryPanoramaIfAvailable(
+          place.name,
+          place.coordinates
         );
-        
+        if (specific) {
+          setCurrentPanorama(specific);
+          setCurrentPanoramaIndex(0);
+          return;
+        }
+
+        // Otherwise find panoramas near the current place
+        const nearbyPanoramas = VRService.getPanoramasByLocation(
+          place.coordinates.lat,
+          place.coordinates.lng,
+          0.5
+        );
+
         if (nearbyPanoramas.length > 0) {
           setCurrentPanorama(nearbyPanoramas[0]);
           setCurrentPanoramaIndex(0);
@@ -79,7 +90,7 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
     if (isOpen) {
       loadPanoramas();
     }
-  }, [isOpen, place.coordinates]);
+  }, [isOpen, place.name, place.coordinates]);
 
   useEffect(() => {
     if (!isOpen || !panoramaRef.current || !currentPanorama) return;
@@ -97,6 +108,11 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
 
       try {
         await loadPannellumAssets();
+
+        // Dispose any existing viewer to avoid multiple WebGL contexts
+        if (panoViewer && typeof (panoViewer as any).destroy === 'function') {
+          try { (panoViewer as any).destroy(); } catch {}
+        }
 
         // Initialize Pannellum with local panorama
         const viewer = (window as any).pannellum.viewer('pano-viewer', {
@@ -133,6 +149,13 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
     };
 
     initializeVR();
+
+    // Cleanup viewer on panorama change / unmount to free WebGL context
+    return () => {
+      if (panoViewer && typeof (panoViewer as any).destroy === 'function') {
+        try { (panoViewer as any).destroy(); } catch {}
+      }
+    };
   }, [isOpen, currentPanorama]);
 
   const ensureScript = (id: string, src: string) => {
@@ -254,6 +277,7 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
   return (
     <AnimatePresence>
       <motion.div
+        key="vr-viewer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -342,9 +366,9 @@ const VRViewer: React.FC<VRViewerProps> = ({ isOpen, onClose, place }) => {
           )}
 
           {/* HotSpots */}
-          {!isLoading && !error && hotSpots.map(hotSpot => (
+          {!isLoading && !error && hotSpots.map((hotSpot, idx) => (
             <motion.button
-              key={hotSpot.id}
+              key={`${hotSpot.id || 'hs'}-${idx}`}
               className="absolute z-20 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center hover:bg-orange-600 transition-all duration-300"
               style={{
                 left: `${hotSpot.position.x}%`,
